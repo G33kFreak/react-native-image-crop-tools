@@ -29,6 +29,8 @@ class ImageCropViewManager: SimpleViewManager<CropImageView>() {
 
     override fun createViewInstance(reactContext: ThemedReactContext): CropImageView {
         val view =  CropImageView(reactContext)
+        view.setCropShape(CropImageView.CropShape.OVAL)
+        view.setGuidelines(CropImageView.Guidelines.OFF)
         view.setOnCropImageCompleteListener { _, result ->
             if (result.isSuccessful) {
                 val map = Arguments.createMap()
