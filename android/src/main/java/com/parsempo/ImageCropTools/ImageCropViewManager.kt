@@ -1,7 +1,10 @@
 package com.parsempo.ImageCropTools
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
@@ -11,7 +14,9 @@ import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
 import com.facebook.react.uimanager.events.RCTEventEmitter
 import com.theartofdev.edmodo.cropper.CropImageView
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.net.URI
 import java.util.*
 
 class ImageCropViewManager: SimpleViewManager<CropImageView>() {
@@ -27,16 +32,20 @@ class ImageCropViewManager: SimpleViewManager<CropImageView>() {
         const val ROTATE_IMAGE_COMMAND_NAME = "rotateImage"
     }
 
+
     override fun createViewInstance(reactContext: ThemedReactContext): CropImageView {
         val view =  CropImageView(reactContext)
         view.setCropShape(CropImageView.CropShape.OVAL)
         view.setGuidelines(CropImageView.Guidelines.OFF)
         view.setOnCropImageCompleteListener { _, result ->
             if (result.isSuccessful) {
+                val imgString = imageToBase64(result.uri.toString())
                 val map = Arguments.createMap()
                 map.putString("uri", result.uri.toString())
                 map.putInt("width", result.cropRect.width())
                 map.putInt("height", result.cropRect.height())
+                map.putString("base64", imgString)
+
                 reactContext.getJSModule(RCTEventEmitter::class.java)?.receiveEvent(
                         view.id,
                         ON_IMAGE_SAVED,
@@ -106,5 +115,11 @@ class ImageCropViewManager: SimpleViewManager<CropImageView>() {
         }else {
             view.clearAspectRatio()
         }
+    }
+
+    fun imageToBase64(path:String):String{
+        val bytes = File(URI(path)).readBytes()
+        var imgBase64 = android.util.Base64.encodeToString(bytes, android.util.Base64.DEFAULT)
+        return imgBase64
     }
 }
